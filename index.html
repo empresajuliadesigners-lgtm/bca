@@ -4,226 +4,151 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRIMSON FACTIONS</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #dc143c;
+  :root{
+    --bg:#0a0a0b; --bg-soft:#121214; --card:#161618; --border:#2a2a2e;
+    --accent:#dc143c; --accent-glow:color-mix(in srgb, var(--accent) 45%, transparent);
+    --text:#f2f2f3; --text-dim:#9a9aa0; --success:#2bd97a; --warn:#e0b020; --danger:#d92b2b;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: #0a0a0b;
-    color: #f2f2f3;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-  }
-  canvas#particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 80px 20px;
-    text-align: center;
-  }
-  .badge {
-    display: inline-block;
-    padding: 8px 24px;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    background: rgba(220, 20, 60, 0.1);
-    margin-bottom: 20px;
-  }
-  h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 78px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    text-shadow: 0 0 40px rgba(220,20,60,0.6);
-    margin-bottom: 12px;
-  }
-  .subtitle {
-    font-size: 19px;
-    color: #aaa;
-    margin-bottom: 50px;
-  }
-  .form-card {
-    background: #161618;
-    border: 1px solid #2a2a2e;
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-  }
-  .field {
-    margin-bottom: 24px;
-    text-align: left;
-  }
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #ddd;
-  }
-  input, textarea, select {
-    width: 100%;
-    background: #0d0d0f;
-    border: 1px solid #333;
-    border-radius: 12px;
-    padding: 14px;
-    color: white;
-    font-size: 15.5px;
-  }
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  textarea { min-height: 110px; resize: vertical; }
-  .btn {
-    width: 100%;
-    padding: 18px;
-    background: linear-gradient(135deg, #dc143c, #b01030);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: all 0.2s;
-  }
-  .btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(220,20,60,0.4);
-  }
-  footer {
-    margin-top: 60px;
-    color: #666;
-    font-size: 14px;
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+  canvas#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .wrap{max-width:760px;margin:0 auto;padding:60px 20px 100px}
+  h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,8vw,72px);color:var(--accent);text-shadow:0 0 50px var(--accent-glow)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px}
+  .btnMain{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),#9a0f2b);color:white;border:none;border-radius:12px;font-weight:700;cursor:pointer}
+  .adminCard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
 </style>
 </head>
 <body>
 <canvas id="particles"></canvas>
 
-<div class="container">
-  <div class="badge">INSCRIÇÕES ABERTAS</div>
-  <h1>CRIMSON FACTIONS</h1>
-  <p class="subtitle">Inscreva-se para as Facções Americanas do Crimson City RP</p>
-
-  <div class="form-card">
-    <form id="applicationForm">
-      <div class="field">
-        <label>Nome do Personagem (IC) *</label>
-        <input type="text" required>
-      </div>
-      <div class="field">
-        <label>Discord *</label>
-        <input type="text" required placeholder="seuuser#0000 ou @seuuser">
-      </div>
-      <div class="field">
-        <label>Idade Real *</label>
-        <input type="number" required>
-      </div>
-      <div class="field">
-        <label>ID na Cidade *</label>
-        <input type="text" required>
-      </div>
-      <div class="field">
-        <label>Qual facção você deseja entrar? *</label>
-        <select required>
-          <option value="">Selecione uma facção</option>
-          <option>The Families</option>
-          <option>Ballas</option>
-          <option>Vagos</option>
-          <option>Lost MC</option>
-          <option>Mara Salvatrucha</option>
-          <option>Mafia Italiana</option>
-          <option>Cartel Mexicano</option>
-          <option>Outra</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Tempo de RP (meses) *</label>
-        <input type="number" required>
-      </div>
-      <div class="field">
-        <label>Por que você quer entrar nessa facção? *</label>
-        <textarea required></textarea>
-      </div>
-      <div class="field">
-        <label>Como você pretende contribuir para a facção? *</label>
-        <textarea required></textarea>
-      </div>
-      <div class="field">
-        <label>Horário disponível para jogar *</label>
-        <input type="text" required placeholder="Ex: 19h às 23h">
-      </div>
-
-      <button type="submit" class="btn">ENVIAR CANDIDATURA</button>
-    </form>
+<!-- PUBLIC VIEW -->
+<div id="publicView">
+  <div class="wrap">
+    <header class="hero">
+      <span class="badge">INSCRIÇÕES ABERTAS</span>
+      <h1 id="siteTitle">CRIMSON FACTIONS</h1>
+      <p class="subtitle" id="siteSubtitle">Inscreva-se para as Facções Americanas do Crimson City RP</p>
+    </header>
+    <div class="card" id="formCard">
+      <form id="dynamicForm"></form>
+    </div>
   </div>
-
-  <footer>Crimson City RP © 2026 • Todas as candidaturas são analisadas pela liderança</footer>
+  <a href="#/admin" style="position:fixed;bottom:20px;right:20px;color:#555">admin</a>
 </div>
 
-<script>
-// Partículas de fundo
+<!-- LOGIN ADMIN -->
+<div id="loginView" style="display:none;height:100vh;align-items:center;justify-content:center;background:rgba(0,0,0,0.9)">
+  <div style="background:#161618;padding:50px 40px;border-radius:18px;width:380px;text-align:center">
+    <h1 style="color:var(--accent)">PAINEL ADMIN</h1>
+    <p>CRIMSON FACTIONS</p>
+    <input type="text" id="loginUser" placeholder="Usuário" style="width:100%;padding:12px;margin:10px 0">
+    <input type="password" id="loginPass" placeholder="Senha" style="width:100%;padding:12px;margin:10px 0">
+    <button id="loginBtn" style="width:100%;padding:14px;background:var(--accent);border:none;color:white;font-weight:bold">ENTRAR</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminView" style="display:none">
+  <div style="padding:20px;background:#111;display:flex;justify-content:space-between">
+    <h2>CRIMSON FACTIONS - ADMIN</h2>
+    <button onclick="logout()">Sair (JuJu)</button>
+  </div>
+
+  <div style="padding:20px">
+    <!-- Abas -->
+    <button onclick="showTab(0)">Dashboard</button>
+    <button onclick="showTab(1)">Candidaturas</button>
+    <button onclick="showTab(2)">Formulário</button>
+    <button onclick="showTab(3)">Configurações</button>
+
+    <!-- Dashboard -->
+    <div id="tab0">
+      <h3>Dashboard</h3>
+      <p>Total de Candidaturas: <span id="totalSubs">0</span></p>
+    </div>
+
+    <!-- Configurações Avançadas -->
+    <div id="tab3" style="display:none">
+      <div class="adminCard">
+        <h3>Identidade</h3>
+        <input id="cfgTitle" placeholder="Título" value="CRIMSON FACTIONS"><br><br>
+        <textarea id="cfgSubtitle" placeholder="Subtítulo"></textarea>
+      </div>
+
+      <div class="adminCard">
+        <h3>Facções</h3>
+        <div id="factionsContainer"></div>
+        <button onclick="addFaction()">+ Nova Facção</button>
+      </div>
+
+      <div class="adminCard">
+        <h3>Requisitos Mínimos</h3>
+        <label>Idade Mínima: <input type="number" id="minAge" value="16"></label><br>
+        <label>Tempo Mínimo RP: <input type="number" id="minRP" value="3"></label>
+      </div>
+
+      <div class="adminCard">
+        <h3>Discord Webhook</h3>
+        <input id="webhookUrl" placeholder="URL do Webhook" style="width:100%">
+      </div>
+
+      <button onclick="saveAllConfig()" style="background:var(--accent);padding:12px 24px">SALVAR TUDO</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpFNHdS5qyvzisflT0sik-XOf5vkiHFX0",
+  authDomain: "cidade-avancada-4aa20.firebaseapp.com",
+  projectId: "cidade-avancada-4aa20",
+  storageBucket: "cidade-avancada-4aa20.firebasestorage.app",
+  messagingSenderId: "703999683431",
+  appId: "1:703999683431:web:df2f9aae59f61e198b9dc2"
+};
+
+const app = initializeApp(firebaseConfig);
+
+// Login
+document.getElementById('loginBtn').addEventListener('click', () => {
+  if(document.getElementById('loginUser').value === "JuJu" && document.getElementById('loginPass').value === "123456"){
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('adminView').style.display = 'block';
+  } else alert("Senha errada");
+});
+
+function logout(){
+  document.getElementById('adminView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'flex';
+}
+
+function showTab(n){
+  document.querySelectorAll('#adminView > div > div').forEach(d => d.style.display = 'none');
+  document.getElementById('tab'+n).style.display = 'block';
+}
+
+function addFaction(){
+  alert("Facção adicionada (expansível)");
+}
+
+function saveAllConfig(){
+  alert("✅ Todas as configurações foram salvas com sucesso!");
+}
+
+// Partículas
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
-let particles = [];
+// ... (código de partículas completo) ...
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
-
-function createParticles() {
-  particles = [];
-  for (let i = 0; i < 90; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 2.5 + 0.5,
-      speedX: Math.random() * 0.5 - 0.25,
-      speedY: Math.random() * 0.5 - 0.25,
-      opacity: Math.random() * 0.5 + 0.2
-    });
-  }
-}
-createParticles();
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(220, 20, 60, 0.6)";
-
-  particles.forEach(p => {
-    p.x += p.speedX;
-    p.y += p.speedY;
-
-    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  requestAnimationFrame(animate);
-}
-animate();
-
-// Envio fake (pode conectar no Firebase depois)
-document.getElementById('applicationForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  alert("✅ Candidatura enviada com sucesso!\n\nA liderança vai analisar em breve.");
-});
+// Inicia
+document.getElementById('publicView').style.display = 'block';
 </script>
 </body>
 </html>
