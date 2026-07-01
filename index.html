@@ -101,6 +101,9 @@ h1.title span{color:var(--accent);text-shadow:0 0 60px var(--accent-glow)}
 .field label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:1.2px;color:var(--ink-dim);margin-bottom:7px}
 .field .req{color:var(--accent)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dyn-fields{display:flex;flex-wrap:wrap;gap:0 16px}
+.dyn-fields .field.w-half{flex:1 1 calc(50% - 8px);min-width:200px}
+.dyn-fields .field.w-full{flex:1 1 100%}
 input[type=text],input[type=number],select,textarea{
   width:100%;background:var(--bg-alt);border:1px solid var(--border);color:var(--ink);
   padding:12px 14px;border-radius:10px;font-family:var(--body);font-size:14px;transition:.15s;
@@ -171,6 +174,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
 .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
 .panel h3{font-family:var(--display);font-size:22px;letter-spacing:.5px;margin-bottom:16px}
+.panel h4{font-family:var(--display);font-size:16px;letter-spacing:.5px;margin:20px 0 10px;color:var(--ink-dim)}
+.panel h4:first-child{margin-top:0}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
 .toolbar input,.toolbar select{max-width:220px}
 .filter-chip{font-family:var(--mono);font-size:10px;padding:7px 12px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--ink-dim);cursor:pointer}
@@ -208,6 +213,22 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 .settings-grid{display:grid;gap:16px;max-width:420px}
 .data-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .exit-admin{font-family:var(--mono);font-size:11px}
+
+/* content editor */
+.content-field{margin-bottom:14px}
+.content-field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--ink-faint);margin-bottom:6px}
+.content-field input,.content-field textarea{font-size:13px}
+.content-field textarea{min-height:60px}
+.save-indicator{font-family:var(--mono);font-size:9px;color:var(--ok);opacity:0;transition:opacity .3s;margin-left:8px}
+.save-indicator.show{opacity:1}
+
+/* form field builder */
+.ffield-row{display:grid;grid-template-columns:50px 1fr 1fr 90px 70px 70px auto;gap:10px;align-items:center;padding:12px 14px;background:var(--bg-alt);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.ffield-row input,.ffield-row select{padding:8px 10px;font-size:12px}
+.ffield-row .order-input{width:100%;text-align:center}
+.ffield-extra{padding:0 14px 12px 60px;background:var(--bg-alt);border-left:2px solid var(--border);margin:-8px 0 8px 0;border-radius:0 0 10px 10px}
+.ffield-extra input{margin-top:4px;font-size:12px}
+.add-ffield-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
 </style>
 </head>
 <body>
@@ -222,80 +243,55 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 <div id="publicView" class="hidden">
   <div class="topbar">
     <div class="topbar-inner">
-      <div class="brand"><span class="dot"></span><div><div>CRIMSON FACTIONS</div><small>CRIMSON CITY RP · RECRUTAMENTO</small></div></div>
-      <div class="nav-actions"><span class="linklike" id="protoQuickLink" style="cursor:default">DOSSIÊS PROCESSADOS: <b id="totalProcessedTop">0</b></span></div>
+      <div class="brand"><span class="dot"></span><div><div id="txtBrandName">CRIMSON FACTIONS</div><small id="txtBrandSub">CRIMSON CITY RP · RECRUTAMENTO</small></div></div>
+      <div class="nav-actions"><span class="linklike" id="protoQuickLink" style="cursor:default"><span id="txtTopbarStat">DOSSIÊS PROCESSADOS:</span> <b id="totalProcessedTop">0</b></span></div>
     </div>
   </div>
 
   <div class="wrap">
     <section class="hero">
-      <span class="eyebrow">INSCRIÇÕES ABERTAS</span>
-      <h1 class="title">JUNTE-SE A UMA<br><span>FACÇÃO.</span></h1>
-      <p class="lede">Preencha seu dossiê de candidatura para representar uma das facções americanas do Crimson City RP. Toda submissão é revisada pela liderança.</p>
+      <span class="eyebrow" id="txtEyebrow">INSCRIÇÕES ABERTAS</span>
+      <h1 class="title"><span id="txtHeroLine1">JUNTE-SE A UMA</span><br><span id="txtHeroLine2" style="color:var(--accent)">FACÇÃO.</span></h1>
+      <p class="lede" id="txtHeroLede">Preencha seu dossiê de candidatura para representar uma das facções americanas do Crimson City RP. Toda submissão é revisada pela liderança.</p>
       <div class="stripe">
-        <div><div class="n" id="statOpenFactions">0</div><div class="l">FACÇÕES ABERTAS</div></div>
-        <div><div class="n" id="statTotalApps">0</div><div class="l">CANDIDATURAS</div></div>
-        <div><div class="n" id="statApproved">0</div><div class="l">APROVADOS</div></div>
+        <div><div class="n" id="statOpenFactions">0</div><div class="l" id="txtStatOpenLabel">FACÇÕES ABERTAS</div></div>
+        <div><div class="n" id="statTotalApps">0</div><div class="l" id="txtStatTotalLabel">CANDIDATURAS</div></div>
+        <div><div class="n" id="statApproved">0</div><div class="l" id="txtStatApprovedLabel">APROVADOS</div></div>
       </div>
     </section>
 
-    <div class="section-label">FACÇÕES DISPONÍVEIS</div>
+    <div class="section-label" id="txtSectionFactions">FACÇÕES DISPONÍVEIS</div>
     <div class="faction-grid" id="factionGallery"></div>
 
-    <div class="section-label">FORMULÁRIO DE CANDIDATURA</div>
+    <div class="section-label" id="txtSectionForm">FORMULÁRIO DE CANDIDATURA</div>
 
     <div class="card" id="formCardWrap">
       <div id="formErrors"></div>
       <div class="card-head">
-        <h2>Dossiê do Candidato</h2>
-        <span class="proto">CASO Nº <span id="draftProto">—</span></span>
+        <h2 id="txtFormCardTitle">Dossiê do Candidato</h2>
+        <span class="proto"><span id="txtCaseLabel">CASO Nº</span> <span id="draftProto">—</span></span>
       </div>
       <form id="applicationForm" novalidate>
-        <div class="row2">
-          <div class="field">
-            <label>Nome IC <span class="req">*</span></label>
-            <input type="text" id="fNome" placeholder="Ex: Marcus Silva" required>
-          </div>
-          <div class="field">
-            <label>Discord <span class="req">*</span></label>
-            <input type="text" id="fDiscord" placeholder="usuario#0000" required>
-          </div>
-        </div>
-        <div class="row2">
-          <div class="field">
-            <label>Idade IC</label>
-            <input type="number" id="fIdade" min="16" max="80" placeholder="Ex: 27">
-          </div>
-          <div class="field">
-            <label>Facção pretendida <span class="req">*</span></label>
-            <select id="fFaccao" required></select>
-          </div>
-        </div>
+        <div class="dyn-fields" id="dynFieldsContainer"></div>
         <div class="field">
-          <label>Experiência em RP <span class="req">*</span></label>
-          <textarea id="fExperiencia" placeholder="Conte sobre sua experiência em servidores de RP anteriores..." required></textarea>
-          <div class="charcount"><span id="expCount">0</span> caracteres</div>
-        </div>
-        <div class="field">
-          <label>Motivação para entrar na facção <span class="req">*</span></label>
-          <textarea id="fMotivacao" placeholder="Por que você quer fazer parte desta facção?" required></textarea>
-          <div class="charcount"><span id="motCount">0</span> caracteres</div>
+          <label id="txtFactionFieldLabel">Facção pretendida <span class="req">*</span></label>
+          <select id="fFaccao" required></select>
         </div>
         <button type="submit" class="btn btn-main" id="submitBtn">ENVIAR CANDIDATURA</button>
-        <div class="hint" style="text-align:center;margin-top:12px">Campos marcados com <span class="req">*</span> são obrigatórios · seus dados ficam salvos no servidor</div>
+        <div class="hint" style="text-align:center;margin-top:12px" id="txtFormHint">Campos marcados com <span class="req">*</span> são obrigatórios · seus dados ficam salvos no servidor</div>
       </form>
 
       <div class="dossier-confirm hidden" id="confirmScreen">
-        <div class="stampwrap"><div class="stamp">RECEBIDO</div></div>
-        <h2 style="font-family:var(--display);font-size:26px">Candidatura enviada</h2>
-        <p class="lede" style="margin:8px auto 0">Sua candidatura foi registrada e está aguardando análise da liderança da facção.</p>
-        <div class="proto-code">CASO Nº <span id="finalProto">—</span></div>
+        <div class="stampwrap"><div class="stamp" id="txtConfirmStamp">RECEBIDO</div></div>
+        <h2 style="font-family:var(--display);font-size:26px" id="txtConfirmTitle">Candidatura enviada</h2>
+        <p class="lede" style="margin:8px auto 0" id="txtConfirmText">Sua candidatura foi registrada e está aguardando análise da liderança da facção.</p>
+        <div class="proto-code"><span id="txtCaseLabel2">CASO Nº</span> <span id="finalProto">—</span></div>
         <button class="btn btn-ghost" id="newAppBtn">Enviar outra candidatura</button>
       </div>
     </div>
 
     <footer class="site-footer">
-      <div>CRIMSON FACTIONS © Crimson City RP — projeto de comunidade, não afiliado à Rockstar Games.</div>
+      <div id="txtFooter">CRIMSON FACTIONS © Crimson City RP — projeto de comunidade, não afiliado à Rockstar Games.</div>
       <div class="adm"><button id="openAdminBtn">acesso restrito</button></div>
     </footer>
   </div>
@@ -326,6 +322,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
         <button class="admin-tab active" data-tab="dash">Visão geral</button>
         <button class="admin-tab" data-tab="apps">Candidaturas</button>
         <button class="admin-tab" data-tab="factions">Facções</button>
+        <button class="admin-tab" data-tab="formbuilder">Formulário</button>
+        <button class="admin-tab" data-tab="content">Conteúdo</button>
         <button class="admin-tab" data-tab="settings">Configurações</button>
       </div>
       <button class="linklike exit-admin" id="exitAdminBtn">← voltar ao site</button>
@@ -353,7 +351,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     <div class="tab-pane hidden" id="tab-apps">
       <div class="panel">
         <div class="toolbar">
-          <input type="text" id="searchApps" placeholder="Buscar por nome ou discord...">
+          <input type="text" id="searchApps" placeholder="Buscar em qualquer campo...">
           <select id="filterFaction"><option value="">Todas as facções</option></select>
           <button class="filter-chip active" data-status="">Todos</button>
           <button class="filter-chip" data-status="pendente">Pendentes</button>
@@ -380,6 +378,34 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       </div>
     </div>
 
+    <!-- FORM BUILDER -->
+    <div class="tab-pane hidden" id="tab-formbuilder">
+      <div class="panel">
+        <h3>Campos do formulário</h3>
+        <div class="hint" style="margin-bottom:14px">Adicione, remova, renomeie e reordene os campos do formulário de candidatura. O campo "Facção" é fixo e configurado separadamente. Mudanças aplicam em tempo real no site.</div>
+        <div id="ffieldList"></div>
+        <div class="add-ffield-row">
+          <input type="text" id="newFfLabel" placeholder="Rótulo do novo campo (ex: Link do Discord)">
+          <select id="newFfType">
+            <option value="text">Texto curto</option>
+            <option value="number">Número</option>
+            <option value="textarea">Texto longo</option>
+            <option value="select">Lista de opções</option>
+          </select>
+          <button class="btn btn-ok btn-sm" id="addFfieldBtn">+ Adicionar campo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="tab-pane hidden" id="tab-content">
+      <div class="panel">
+        <h3>Conteúdo do site <span class="save-indicator" id="contentSaveIndicator">salvo ✓</span></h3>
+        <div class="hint" style="margin-bottom:14px">Todo texto visível no site pode ser editado aqui. Salva automaticamente enquanto você digita.</div>
+        <div id="contentEditorList"></div>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="tab-pane hidden" id="tab-settings">
       <div class="panel">
@@ -395,7 +421,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       </div>
       <div class="panel">
         <h3>Dados</h3>
-        <div class="hint">Exporte um backup de todas as candidaturas e facções, ou restaure a partir de um arquivo.</div>
+        <div class="hint">Exporte um backup de todas as candidaturas, facções, campos e conteúdo, ou restaure a partir de um arquivo.</div>
         <div class="data-actions">
           <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar backup (.json)</button>
           <label class="btn btn-ghost btn-sm" style="cursor:pointer">⬆ Importar backup<input type="file" id="importFile" accept="application/json" class="hidden"></label>
@@ -431,6 +457,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   const APPLICATIONS_COL = 'cf_applications';
   const FACTIONS_COL = 'cf_factions';
   const SETTINGS_DOC = db.collection('cf_settings').doc('main');
+  const CONTENT_DOC = db.collection('cf_settings').doc('content');
+  const FORMFIELDS_DOC = db.collection('cf_settings').doc('formFields');
 
   const defaultFactions = [
     {id:'f1', name:'The Families', tag:'STREET GANG · SUL', color:'#3fbf6f', desc:'Uma das facções mais tradicionais da cidade, controlando o setor sul.', vagas:8, aberta:true},
@@ -438,18 +466,97 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     {id:'f3', name:'Polícia de Crimson City', tag:'FACÇÃO OFICIAL', color:'#3f7fd9', desc:'Força policial responsável pela lei e ordem na cidade.', vagas:10, aberta:true}
   ];
 
+  const defaultFormFields = [
+    {id:'nome', label:'Nome IC', type:'text', placeholder:'Ex: Marcus Silva', required:true, width:'half', order:1, options:''},
+    {id:'discord', label:'Discord', type:'text', placeholder:'usuario#0000', required:true, width:'half', order:2, options:''},
+    {id:'idade', label:'Idade IC', type:'number', placeholder:'Ex: 27', required:false, width:'half', order:3, options:''},
+    {id:'experiencia', label:'Experiência em RP', type:'textarea', placeholder:'Conte sobre sua experiência em servidores de RP anteriores...', required:true, width:'full', order:4, options:''},
+    {id:'motivacao', label:'Motivação para entrar na facção', type:'textarea', placeholder:'Por que você quer fazer parte desta facção?', required:true, width:'full', order:5, options:''}
+  ];
+
+  const contentDefaults = {
+    brandName:'CRIMSON FACTIONS',
+    brandSub:'CRIMSON CITY RP · RECRUTAMENTO',
+    topbarStat:'DOSSIÊS PROCESSADOS:',
+    eyebrow:'INSCRIÇÕES ABERTAS',
+    heroLine1:'JUNTE-SE A UMA',
+    heroLine2:'FACÇÃO.',
+    heroLede:'Preencha seu dossiê de candidatura para representar uma das facções americanas do Crimson City RP. Toda submissão é revisada pela liderança.',
+    statOpenLabel:'FACÇÕES ABERTAS',
+    statTotalLabel:'CANDIDATURAS',
+    statApprovedLabel:'APROVADOS',
+    sectionFactions:'FACÇÕES DISPONÍVEIS',
+    sectionForm:'FORMULÁRIO DE CANDIDATURA',
+    formCardTitle:'Dossiê do Candidato',
+    caseLabel:'CASO Nº',
+    factionFieldLabel:'Facção pretendida',
+    factionEmptyOption:'Nenhuma facção recrutando no momento',
+    vagasSuffix:'vagas',
+    recruitingLabel:'RECRUTANDO',
+    closedLabel:'FECHADA',
+    submitBtn:'ENVIAR CANDIDATURA',
+    formHint:'seus dados ficam salvos no servidor',
+    confirmStamp:'RECEBIDO',
+    confirmTitle:'Candidatura enviada',
+    confirmText:'Sua candidatura foi registrada e está aguardando análise da liderança da facção.',
+    newAppBtn:'Enviar outra candidatura',
+    footer:'CRIMSON FACTIONS © Crimson City RP — projeto de comunidade, não afiliado à Rockstar Games.'
+  };
+
+  const contentMeta = [
+    {section:'Topo', fields:[
+      {key:'brandName', label:'Nome da marca', type:'text'},
+      {key:'brandSub', label:'Subtítulo da marca', type:'text'},
+      {key:'topbarStat', label:'Texto do contador (topo)', type:'text'}
+    ]},
+    {section:'Cabeçalho / Hero', fields:[
+      {key:'eyebrow', label:'Selo "inscrições abertas"', type:'text'},
+      {key:'heroLine1', label:'Título linha 1', type:'text'},
+      {key:'heroLine2', label:'Título linha 2 (destaque)', type:'text'},
+      {key:'heroLede', label:'Parágrafo de introdução', type:'textarea'},
+      {key:'statOpenLabel', label:'Rótulo: facções abertas', type:'text'},
+      {key:'statTotalLabel', label:'Rótulo: candidaturas', type:'text'},
+      {key:'statApprovedLabel', label:'Rótulo: aprovados', type:'text'}
+    ]},
+    {section:'Facções', fields:[
+      {key:'sectionFactions', label:'Título da seção de facções', type:'text'},
+      {key:'vagasSuffix', label:'Sufixo de vagas (ex: vagas)', type:'text'},
+      {key:'recruitingLabel', label:'Selo: recrutando', type:'text'},
+      {key:'closedLabel', label:'Selo: fechada', type:'text'}
+    ]},
+    {section:'Formulário', fields:[
+      {key:'sectionForm', label:'Título da seção do formulário', type:'text'},
+      {key:'formCardTitle', label:'Título do card', type:'text'},
+      {key:'caseLabel', label:'Rótulo do protocolo (ex: CASO Nº)', type:'text'},
+      {key:'factionFieldLabel', label:'Rótulo do campo facção', type:'text'},
+      {key:'factionEmptyOption', label:'Texto quando nenhuma facção está aberta', type:'text'},
+      {key:'submitBtn', label:'Texto do botão enviar', type:'text'},
+      {key:'formHint', label:'Dica abaixo do botão', type:'text'}
+    ]},
+    {section:'Confirmação', fields:[
+      {key:'confirmStamp', label:'Carimbo (ex: RECEBIDO)', type:'text'},
+      {key:'confirmTitle', label:'Título de confirmação', type:'text'},
+      {key:'confirmText', label:'Texto de confirmação', type:'textarea'},
+      {key:'newAppBtn', label:'Botão: enviar outra', type:'text'}
+    ]},
+    {section:'Rodapé', fields:[
+      {key:'footer', label:'Texto do rodapé', type:'textarea'}
+    ]}
+  ];
+
   /* ---------------- local state (mirrors Firestore) ---------------- */
   let state = {
     adminPass: 'crimson2026',
     factions: [],
-    applications: []
+    applications: [],
+    formFields: [],
+    content: Object.assign({}, contentDefaults)
   };
 
-  let unsubApps = null;
-  let unsubFacs = null;
-  let unsubSettings = null;
   let firstFactionsLoad = true;
   let firstSettingsLoad = true;
+  let firstContentLoad = true;
+  let firstFieldsLoad = true;
 
   function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
   function protoCode(){
@@ -467,7 +574,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
   /* ---------------- realtime listeners ---------------- */
   function startListeners(){
-    unsubSettings = SETTINGS_DOC.onSnapshot(async (snap)=>{
+    SETTINGS_DOC.onSnapshot(async (snap)=>{
       if(snap.exists){
         state.adminPass = snap.data().adminPass || 'crimson2026';
       } else if(firstSettingsLoad){
@@ -476,17 +583,39 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       firstSettingsLoad = false;
     }, (err)=>{ console.error('settings listener error', err); });
 
-    unsubFacs = db.collection(FACTIONS_COL).onSnapshot(async (snap)=>{
+    CONTENT_DOC.onSnapshot(async (snap)=>{
+      if(snap.exists){
+        state.content = Object.assign({}, contentDefaults, snap.data());
+      } else if(firstContentLoad){
+        await CONTENT_DOC.set(contentDefaults);
+      }
+      firstContentLoad = false;
+      applyContentToDOM();
+      renderContentEditor();
+    }, (err)=>{ console.error('content listener error', err); });
+
+    FORMFIELDS_DOC.onSnapshot(async (snap)=>{
+      if(snap.exists && Array.isArray(snap.data().fields)){
+        state.formFields = snap.data().fields.slice().sort((a,b)=>(a.order||0)-(b.order||0));
+      } else if(firstFieldsLoad){
+        await FORMFIELDS_DOC.set({fields: defaultFormFields});
+      }
+      firstFieldsLoad = false;
+      renderDynamicForm();
+      renderFfieldList();
+      renderAppsList();
+    }, (err)=>{ console.error('form fields listener error', err); });
+
+    db.collection(FACTIONS_COL).onSnapshot(async (snap)=>{
       if(snap.empty && firstFactionsLoad){
         firstFactionsLoad = false;
-        // seed default factions once
         const batch = db.batch();
         defaultFactions.forEach(f=>{
           const ref = db.collection(FACTIONS_COL).doc(f.id);
           batch.set(ref, f);
         });
         await batch.commit();
-        return; // snapshot will fire again with seeded data
+        return;
       }
       firstFactionsLoad = false;
       state.factions = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -499,7 +628,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       showApp();
     }, (err)=>{ console.error('factions listener error', err); showApp(true); });
 
-    unsubApps = db.collection(APPLICATIONS_COL).orderBy('data','desc').onSnapshot((snap)=>{
+    db.collection(APPLICATIONS_COL).orderBy('data','desc').onSnapshot((snap)=>{
       state.applications = snap.docs.map(d=>({id:d.id, ...d.data()}));
       renderPublicStats();
       renderDash();
@@ -515,9 +644,41 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     }
   }
 
+  /* ---------------- apply site content text to DOM ---------------- */
+  function applyContentToDOM(){
+    const c = state.content;
+    document.getElementById('txtBrandName').textContent = c.brandName;
+    document.getElementById('txtBrandSub').textContent = c.brandSub;
+    document.getElementById('txtTopbarStat').textContent = c.topbarStat;
+    document.getElementById('txtEyebrow').innerHTML = '';
+    document.getElementById('txtEyebrow').textContent = c.eyebrow;
+    document.getElementById('txtHeroLine1').textContent = c.heroLine1;
+    document.getElementById('txtHeroLine2').textContent = c.heroLine2;
+    document.getElementById('txtHeroLede').textContent = c.heroLede;
+    document.getElementById('txtStatOpenLabel').textContent = c.statOpenLabel;
+    document.getElementById('txtStatTotalLabel').textContent = c.statTotalLabel;
+    document.getElementById('txtStatApprovedLabel').textContent = c.statApprovedLabel;
+    document.getElementById('txtSectionFactions').textContent = c.sectionFactions;
+    document.getElementById('txtSectionForm').textContent = c.sectionForm;
+    document.getElementById('txtFormCardTitle').textContent = c.formCardTitle;
+    document.getElementById('txtCaseLabel').textContent = c.caseLabel;
+    document.getElementById('txtCaseLabel2').textContent = c.caseLabel;
+    document.getElementById('txtFactionFieldLabel').innerHTML = escapeHtml(c.factionFieldLabel) + ' <span class="req">*</span>';
+    document.getElementById('submitBtn').textContent = c.submitBtn;
+    document.getElementById('txtFormHint').innerHTML = 'Campos marcados com <span class="req">*</span> são obrigatórios · ' + escapeHtml(c.formHint);
+    document.getElementById('txtConfirmStamp').textContent = c.confirmStamp;
+    document.getElementById('txtConfirmTitle').textContent = c.confirmTitle;
+    document.getElementById('txtConfirmText').textContent = c.confirmText;
+    document.getElementById('newAppBtn').textContent = c.newAppBtn;
+    document.getElementById('txtFooter').textContent = c.footer;
+    renderFactionGallery();
+    renderFactionSelect();
+  }
+
   /* ---------------- public: faction gallery ---------------- */
   function renderFactionGallery(){
     const el = document.getElementById('factionGallery');
+    const c = state.content;
     if(state.factions.length === 0){
       el.innerHTML = '<div class="empty-state"><div class="big">🏴</div>Nenhuma facção cadastrada ainda.</div>';
       return;
@@ -528,8 +689,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
         <div class="ftag">${escapeHtml(f.tag||'')}</div>
         <div class="fdesc">${escapeHtml(f.desc||'')}</div>
         <div class="fmeta">
-          <span>${f.vagas} vagas</span>
-          <span class="badge-status ${f.aberta ? 'badge-open':'badge-closed'}">${f.aberta ? 'RECRUTANDO':'FECHADA'}</span>
+          <span>${f.vagas} ${escapeHtml(c.vagasSuffix)}</span>
+          <span class="badge-status ${f.aberta ? 'badge-open':'badge-closed'}">${f.aberta ? escapeHtml(c.recruitingLabel) : escapeHtml(c.closedLabel)}</span>
         </div>
       </div>
     `).join('');
@@ -541,7 +702,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     const open = state.factions.filter(f => f.aberta);
     sel.innerHTML = open.length
       ? open.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')
-      : '<option value="">Nenhuma facção recrutando no momento</option>';
+      : `<option value="">${escapeHtml(state.content.factionEmptyOption)}</option>`;
     if(open.some(f=>f.id===prevVal)) sel.value = prevVal;
 
     const filt = document.getElementById('filterFaction');
@@ -566,28 +727,57 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     return p;
   }
 
-  /* ---------------- form ---------------- */
+  /* ---------------- dynamic form rendering (public) ---------------- */
+  function renderDynamicForm(){
+    const container = document.getElementById('dynFieldsContainer');
+    const fields = state.formFields;
+    container.innerHTML = fields.map(f=>{
+      const widthClass = f.width === 'half' ? 'w-half' : 'w-full';
+      const reqStar = f.required ? ' <span class="req">*</span>' : '';
+      let inputHtml = '';
+      if(f.type === 'textarea'){
+        inputHtml = `<textarea data-fid="${f.id}" placeholder="${escapeHtml(f.placeholder||'')}" ${f.required?'required':''}></textarea>
+          <div class="charcount"><span data-fid-count="${f.id}">0</span> caracteres</div>`;
+      } else if(f.type === 'select'){
+        const opts = (f.options||'').split(',').map(o=>o.trim()).filter(Boolean);
+        inputHtml = `<select data-fid="${f.id}" ${f.required?'required':''}>
+          <option value="">Selecione...</option>
+          ${opts.map(o=>`<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}
+        </select>`;
+      } else {
+        inputHtml = `<input type="${f.type==='number'?'number':'text'}" data-fid="${f.id}" placeholder="${escapeHtml(f.placeholder||'')}" ${f.required?'required':''}>`;
+      }
+      return `<div class="field ${widthClass}">
+        <label>${escapeHtml(f.label)}${reqStar}</label>
+        ${inputHtml}
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('textarea[data-fid]').forEach(ta=>{
+      ta.addEventListener('input', ()=>{
+        const counter = container.querySelector(`[data-fid-count="${ta.dataset.fid}"]`);
+        if(counter) counter.textContent = ta.value.length;
+      });
+    });
+  }
+
+  /* ---------------- form submit ---------------- */
   const form = document.getElementById('applicationForm');
-  const expEl = document.getElementById('fExperiencia');
-  const motEl = document.getElementById('fMotivacao');
-  expEl.addEventListener('input', ()=> document.getElementById('expCount').textContent = expEl.value.length);
-  motEl.addEventListener('input', ()=> document.getElementById('motCount').textContent = motEl.value.length);
 
   form.addEventListener('submit', async function(e){
     e.preventDefault();
     const errs = [];
-    const nome = document.getElementById('fNome').value.trim();
-    const discord = document.getElementById('fDiscord').value.trim();
-    const idade = document.getElementById('fIdade').value;
-    const faccaoId = document.getElementById('fFaccao').value;
-    const exp = expEl.value.trim();
-    const mot = motEl.value.trim();
+    const fieldsData = {};
 
-    if(!nome) errs.push('Informe o nome IC.');
-    if(!discord) errs.push('Informe seu usuário do Discord.');
+    state.formFields.forEach(f=>{
+      const el = document.querySelector(`[data-fid="${f.id}"]`);
+      const val = el ? el.value.trim() : '';
+      if(f.required && !val) errs.push(`Preencha: ${f.label}.`);
+      fieldsData[f.id] = val;
+    });
+
+    const faccaoId = document.getElementById('fFaccao').value;
     if(!faccaoId) errs.push('Selecione uma facção — nenhuma está recrutando no momento.');
-    if(!exp) errs.push('Descreva sua experiência em RP.');
-    if(!mot) errs.push('Descreva sua motivação.');
 
     const errBox = document.getElementById('formErrors');
     if(errs.length){
@@ -599,16 +789,14 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
+    const originalBtnText = submitBtn.textContent;
     submitBtn.textContent = 'ENVIANDO...';
 
     const proto = sessionStorage.getItem('cf_draft_proto') || protoCode();
     const app = {
       protocolo: proto,
-      nome, discord,
-      idade: idade || null,
       faccaoId,
-      experiencia: exp,
-      motivacao: mot,
+      fields: fieldsData,
       status: 'pendente',
       data: new Date().toISOString()
     };
@@ -624,14 +812,13 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       errBox.innerHTML = '<div class="error-box">Erro ao enviar candidatura. Tente novamente.</div>';
     }finally{
       submitBtn.disabled = false;
-      submitBtn.textContent = 'ENVIAR CANDIDATURA';
+      submitBtn.textContent = originalBtnText;
     }
   });
 
   document.getElementById('newAppBtn').addEventListener('click', function(){
     form.reset();
-    document.getElementById('expCount').textContent = '0';
-    document.getElementById('motCount').textContent = '0';
+    renderDynamicForm();
     document.getElementById('confirmScreen').classList.add('hidden');
     form.classList.remove('hidden');
     newDraftProto();
@@ -666,6 +853,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     renderDash();
     renderAppsList();
     renderFactionManage();
+    renderFfieldList();
+    renderContentEditor();
   }
   document.getElementById('exitAdminBtn').addEventListener('click', function(){
     document.getElementById('adminView').classList.remove('active');
@@ -681,6 +870,20 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       document.getElementById('tab-'+this.dataset.tab).classList.remove('hidden');
     });
   });
+
+  /* ---------------- helpers for dynamic applications ---------------- */
+  function primaryLabel(app){
+    if(state.formFields.length && app.fields){
+      const first = state.formFields[0];
+      const v = app.fields[first.id];
+      if(v) return v;
+    }
+    return app.protocolo;
+  }
+  function searchableText(app){
+    const vals = app.fields ? Object.values(app.fields).join(' ') : '';
+    return (vals + ' ' + (app.protocolo||'')).toLowerCase();
+  }
 
   /* ---------------- admin: dashboard ---------------- */
   function renderDash(){
@@ -712,7 +915,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     recent.innerHTML = last5.length ? last5.map(a=>{
       const fac = state.factions.find(f=>f.id===a.faccaoId);
       return `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px">
-        <span>${escapeHtml(a.nome)} <span style="color:var(--ink-faint)">→ ${escapeHtml(fac?fac.name:'—')}</span></span>
+        <span>${escapeHtml(primaryLabel(a))} <span style="color:var(--ink-faint)">→ ${escapeHtml(fac?fac.name:'—')}</span></span>
         <span class="status-pill status-${a.status}">${a.status.toUpperCase()}</span>
       </div>`;
     }).join('') : '<div class="empty-state">Nenhuma candidatura ainda.</div>';
@@ -730,7 +933,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     let apps = state.applications.filter(a=>{
       if(currentStatusFilter && a.status !== currentStatusFilter) return false;
       if(facFilter && a.faccaoId !== facFilter) return false;
-      if(search && !((a.nome||'').toLowerCase().includes(search) || (a.discord||'').toLowerCase().includes(search))) return false;
+      if(search && !searchableText(a).includes(search)) return false;
       return true;
     });
 
@@ -743,24 +946,24 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     list.innerHTML = apps.map(a=>{
       const fac = state.factions.find(f=>f.id===a.faccaoId);
       const isOpen = openDossierId === a.id;
+      const fieldsHtml = state.formFields.map(f=>`
+        <div class="dossier-field"><div class="k">${escapeHtml(f.label.toUpperCase())}</div><div class="v">${escapeHtml((a.fields && a.fields[f.id]) || '—')}</div></div>
+      `).join('');
       return `<div class="dossier ${isOpen?'open':''}" data-id="${a.id}">
         <div class="dossier-head" data-toggle="${a.id}">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <span class="dossier-id">${escapeHtml(a.protocolo)}</span>
-            <span class="dossier-name">${escapeHtml(a.nome)}</span>
+            <span class="dossier-name">${escapeHtml(primaryLabel(a))}</span>
             <span class="dossier-fac" style="border-color:${fac?fac.color:'#333'};color:${fac?fac.color:'inherit'}">${escapeHtml(fac?fac.name:'facção removida')}</span>
           </div>
           <span class="status-pill status-${a.status}">${a.status.toUpperCase()}</span>
         </div>
         <div class="dossier-body">
           <div class="dossier-grid">
-            <div class="dossier-field"><div class="k">DISCORD</div><div class="v">${escapeHtml(a.discord)}</div></div>
-            <div class="dossier-field"><div class="k">IDADE IC</div><div class="v">${escapeHtml(a.idade||'—')}</div></div>
             <div class="dossier-field"><div class="k">DATA DE ENVIO</div><div class="v">${fmtDate(a.data)}</div></div>
             <div class="dossier-field"><div class="k">FACÇÃO</div><div class="v">${escapeHtml(fac?fac.name:'facção removida')}</div></div>
+            ${fieldsHtml}
           </div>
-          <div class="dossier-field" style="margin-bottom:12px"><div class="k">EXPERIÊNCIA EM RP</div><div class="v">${escapeHtml(a.experiencia)}</div></div>
-          <div class="dossier-field" style="margin-bottom:14px"><div class="k">MOTIVAÇÃO</div><div class="v">${escapeHtml(a.motivacao)}</div></div>
           <div class="dossier-actions">
             <button class="btn btn-ok btn-sm" data-action="aprovado" data-id="${a.id}">✓ Aprovar</button>
             <button class="btn btn-warn btn-sm" data-action="pendente" data-id="${a.id}">⟳ Marcar pendente</button>
@@ -836,7 +1039,6 @@ footer.site-footer .adm button:hover{color:var(--accent)}
         const field = this.dataset.field;
         const value = field==='aberta' ? this.checked : (field==='vagas' ? Number(this.value||0) : this.value);
 
-        // checkbox saves immediately; text/number/color debounced
         if(field === 'aberta'){
           db.collection(FACTIONS_COL).doc(id).update({[field]: value}).catch(err=>console.error(err));
           return;
@@ -880,6 +1082,133 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     }
   });
 
+  /* ---------------- admin: form field builder ---------------- */
+  let ffSaveTimers = {};
+
+  async function saveFormFields(newFields){
+    state.formFields = newFields.slice().sort((a,b)=>(a.order||0)-(b.order||0));
+    try{
+      await FORMFIELDS_DOC.set({fields: state.formFields});
+    }catch(err){
+      console.error(err);
+      alert('Erro ao salvar campos do formulário.');
+    }
+  }
+
+  function renderFfieldList(){
+    const el = document.getElementById('ffieldList');
+    if(!state.formFields.length){
+      el.innerHTML = '<div class="empty-state">Nenhum campo cadastrado.</div>';
+      return;
+    }
+    const typeLabels = {text:'Texto curto', number:'Número', textarea:'Texto longo', select:'Lista de opções'};
+    el.innerHTML = state.formFields.map(f=>`
+      <div class="ffield-row" data-id="${f.id}">
+        <input type="number" class="order-input" value="${f.order}" data-ff-field="order" data-ff-id="${f.id}" title="Ordem">
+        <input type="text" value="${escapeHtml(f.label)}" data-ff-field="label" data-ff-id="${f.id}" placeholder="Rótulo">
+        <input type="text" value="${escapeHtml(f.placeholder||'')}" data-ff-field="placeholder" data-ff-id="${f.id}" placeholder="Placeholder">
+        <select data-ff-field="type" data-ff-id="${f.id}">
+          ${Object.entries(typeLabels).map(([v,l])=>`<option value="${v}" ${f.type===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <select data-ff-field="width" data-ff-id="${f.id}">
+          <option value="full" ${f.width==='full'?'selected':''}>Largura total</option>
+          <option value="half" ${f.width==='half'?'selected':''}>Metade</option>
+        </select>
+        <label class="toggle"><input type="checkbox" ${f.required?'checked':''} data-ff-field="required" data-ff-id="${f.id}"> OBRIG.</label>
+        <button class="btn btn-danger btn-sm" data-ff-remove="${f.id}">🗑</button>
+      </div>
+      ${f.type==='select' ? `<div class="ffield-extra"><input type="text" value="${escapeHtml(f.options||'')}" data-ff-field="options" data-ff-id="${f.id}" placeholder="Opções separadas por vírgula (ex: Sim, Não, Talvez)"></div>` : ''}
+    `).join('');
+
+    el.querySelectorAll('[data-ff-field]').forEach(inp=>{
+      const handler = function(){
+        const id = this.dataset.ffId;
+        const field = this.dataset.ffField;
+        let value;
+        if(field === 'required') value = this.checked;
+        else if(field === 'order') value = Number(this.value || 0);
+        else value = this.value;
+
+        const updated = state.formFields.map(f => f.id === id ? {...f, [field]: value} : f);
+
+        if(field === 'type' || field === 'width' || field === 'required'){
+          saveFormFields(updated);
+          if(field === 'type') renderFfieldList();
+          return;
+        }
+        clearTimeout(ffSaveTimers[id+field]);
+        ffSaveTimers[id+field] = setTimeout(()=>{
+          saveFormFields(updated);
+        }, 500);
+      };
+      inp.addEventListener('input', handler);
+    });
+    el.querySelectorAll('[data-ff-remove]').forEach(btn=>{
+      btn.addEventListener('click', function(){
+        if(confirm('Remover este campo? Candidaturas antigas manterão o valor salvo, mas ele deixará de aparecer no formulário.')){
+          const updated = state.formFields.filter(f=>f.id !== this.dataset.ffRemove);
+          saveFormFields(updated);
+        }
+      });
+    });
+  }
+
+  document.getElementById('addFfieldBtn').addEventListener('click', function(){
+    const label = document.getElementById('newFfLabel').value.trim();
+    const type = document.getElementById('newFfType').value;
+    if(!label){ alert('Informe o rótulo do campo.'); return; }
+    const maxOrder = state.formFields.reduce((m,f)=>Math.max(m,f.order||0),0);
+    const newField = {
+      id: uid('fld'),
+      label, type,
+      placeholder:'',
+      required:false,
+      width: type==='textarea' ? 'full' : 'half',
+      order: maxOrder+1,
+      options:''
+    };
+    saveFormFields([...state.formFields, newField]);
+    document.getElementById('newFfLabel').value='';
+  });
+
+  /* ---------------- admin: content editor ---------------- */
+  let contentSaveTimers = {};
+
+  function renderContentEditor(){
+    const el = document.getElementById('contentEditorList');
+    const c = state.content;
+    el.innerHTML = contentMeta.map(section => `
+      <h4>${escapeHtml(section.section)}</h4>
+      ${section.fields.map(f => `
+        <div class="content-field">
+          <label>${escapeHtml(f.label)}</label>
+          ${f.type === 'textarea'
+            ? `<textarea data-ckey="${f.key}">${escapeHtml(c[f.key] ?? '')}</textarea>`
+            : `<input type="text" data-ckey="${f.key}" value="${escapeHtml(c[f.key] ?? '')}">`
+          }
+        </div>
+      `).join('')}
+    `).join('');
+
+    el.querySelectorAll('[data-ckey]').forEach(inp=>{
+      inp.addEventListener('input', function(){
+        const key = this.dataset.ckey;
+        const value = this.value;
+        state.content[key] = value;
+        applyContentToDOM();
+        clearTimeout(contentSaveTimers[key]);
+        contentSaveTimers[key] = setTimeout(async ()=>{
+          try{
+            await CONTENT_DOC.set({[key]: value}, {merge:true});
+            const ind = document.getElementById('contentSaveIndicator');
+            ind.classList.add('show');
+            setTimeout(()=> ind.classList.remove('show'), 1200);
+          }catch(err){ console.error(err); }
+        }, 500);
+      });
+    });
+  }
+
   /* ---------------- admin: settings ---------------- */
   document.getElementById('saveNewPassBtn').addEventListener('click', async function(){
     const val = document.getElementById('newAdminPass').value;
@@ -902,7 +1231,9 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     const backup = {
       adminPass: state.adminPass,
       factions: state.factions,
-      applications: state.applications
+      applications: state.applications,
+      formFields: state.formFields,
+      content: state.content
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
@@ -934,6 +1265,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
           batch.set(ref, rest, {merge:true});
         });
         if(data.adminPass) await SETTINGS_DOC.set({adminPass: data.adminPass}, {merge:true});
+        if(data.content) await CONTENT_DOC.set(data.content, {merge:true});
+        if(data.formFields) await FORMFIELDS_DOC.set({fields: data.formFields});
         await batch.commit();
         alert('Backup importado com sucesso.');
       }catch(err){
@@ -946,7 +1279,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   });
 
   document.getElementById('resetBtn').addEventListener('click', async function(){
-    if(!confirm('Isso apagará TODAS as candidaturas e facções permanentemente. Continuar?')) return;
+    if(!confirm('Isso apagará TODAS as candidaturas, facções, campos e conteúdo personalizados. Continuar?')) return;
     const btn = this;
     btn.disabled = true;
     try{
@@ -965,6 +1298,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       });
       await seedBatch.commit();
       await SETTINGS_DOC.set({adminPass:'crimson2026'});
+      await CONTENT_DOC.set(contentDefaults);
+      await FORMFIELDS_DOC.set({fields: defaultFormFields});
     }catch(err){
       console.error(err);
       alert('Erro ao limpar dados.');
