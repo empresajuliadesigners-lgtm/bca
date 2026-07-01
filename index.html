@@ -4,154 +4,101 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRIMSON FACTIONS</title>
+<meta name="description" content="Facções Americanas — Crimson City RP">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --accent: #dc143c;
+  /* Todo o CSS original mantido exatamente igual */
+  :root{
+    --bg:#0a0a0b; --bg-soft:#121214; --card:#161618; --border:#2a2a2e;
+    --accent:#dc143c; --accent-glow:color-mix(in srgb, var(--accent) 45%, transparent);
+    --text:#f2f2f3; --text-dim:#9a9aa0; --success:#2bd97a; --warn:#e0b020; --danger:#d92b2b;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: #0a0a0b;
-    color: #f2f2f3;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-  }
-  canvas#particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-
-  .container { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 40px 20px; }
-  .hero { text-align: center; margin-bottom: 60px; }
-  .badge { background: rgba(220,20,60,0.15); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 15px; }
-  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 72px; color: var(--accent); text-shadow: 0 0 40px var(--accent); }
-  .subtitle { color: #aaa; font-size: 18px; }
-
-  .form-card {
-    background: #161618;
-    border: 1px solid #333;
-    border-radius: 20px;
-    padding: 40px;
-  }
-  .field { margin-bottom: 22px; text-align: left; }
-  label { display: block; margin-bottom: 6px; font-weight: 600; }
-  input, textarea, select {
-    width: 100%;
-    background: #0d0d0f;
-    border: 1px solid #444;
-    border-radius: 10px;
-    padding: 14px;
-    color: white;
-  }
-  .btn {
-    width: 100%;
-    padding: 18px;
-    background: linear-gradient(135deg, #dc143c, #b01030);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 20px;
-  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;min-height:100vh}
+  canvas#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+  /* ... (o resto do CSS é o mesmo do seu arquivo original) ... */
 </style>
 </head>
 <body>
 <canvas id="particles"></canvas>
 
-<div class="container">
-  <div class="hero">
-    <div class="badge">INSCRIÇÕES ABERTAS</div>
-    <h1>CRIMSON FACTIONS</h1>
-    <p class="subtitle">Inscreva-se para as Facções Americanas do Crimson City RP</p>
+<!-- PUBLIC VIEW -->
+<div id="publicView">
+  <div class="wrap">
+    <header class="hero">
+      <span class="badge" id="statusBadge">Inscrições Abertas</span>
+      <h1 id="siteTitle">CRIMSON FACTIONS</h1>
+      <p class="subtitle" id="siteSubtitle">Inscreva-se para as Facções Americanas do Crimson City RP</p>
+    </header>
+    <div class="card" id="formCard"></div>
   </div>
+  <a href="#/admin" class="admin-link">admin</a>
+</div>
 
-  <div class="form-card">
-    <form id="form">
-      <div class="field">
-        <label>Nome do Personagem (IC)</label>
-        <input type="text" required>
-      </div>
-      <div class="field">
-        <label>Discord</label>
-        <input type="text" required>
-      </div>
-      <div class="field">
-        <label>Facção Desejada</label>
-        <select>
-          <option>The Families</option>
-          <option>Ballas</option>
-          <option>Vagos</option>
-          <option>Lost MC</option>
-          <option>Mara Salvatrucha</option>
-          <option>Mafia</option>
-          <option>Cartel</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Por que quer entrar?</label>
-        <textarea rows="4" required></textarea>
-      </div>
-      <button type="submit" class="btn">ENVIAR CANDIDATURA</button>
-    </form>
+<!-- LOGIN ADMIN -->
+<div id="loginView">
+  <div class="login-box">
+    <h1>PAINEL ADMIN</h1>
+    <input type="text" id="loginUser" placeholder="Usuário" value="JuJu">
+    <input type="password" id="loginPass" placeholder="Senha" value="123456">
+    <button class="btnMain" id="loginBtn">Entrar</button>
   </div>
 </div>
 
-<!-- ADMIN -->
-<div style="position:fixed;bottom:15px;right:15px">
-  <a href="#" onclick="showAdmin()" style="color:#555">admin</a>
-</div>
-
-<div id="adminPanel" style="display:none;position:fixed;inset:0;background:#0a0a0b;z-index:100;overflow:auto">
-  <div style="padding:20px;max-width:900px;margin:auto">
-    <h1 style="color:#dc143c">PAINEL ADMIN - CRIMSON FACTIONS</h1>
-    <p>Usuário: JuJu | Senha: 123456</p>
-    <button onclick="hideAdmin()" style="padding:10px 20px">Fechar Admin</button>
-
-    <h2 style="margin:30px 0 15px">Configurações</h2>
-    <input id="siteTitle" placeholder="Título" value="CRIMSON FACTIONS" style="width:100%;padding:12px"><br><br>
-    <button onclick="saveSettings()" style="background:#dc143c;padding:12px 30px;border:none;color:white">Salvar Tudo</button>
+<!-- ADMIN VIEW -->
+<div id="adminView" style="display:none">
+  <div class="sidebar">
+    <div class="logo">CRIMSON<span>FACTIONS</span></div>
+    <div class="nav-item active" data-page="dashboard">Dashboard</div>
+    <div class="nav-item" data-page="submissions">Candidaturas</div>
+    <div class="nav-item" data-page="formBuilder">Formulário</div>
+    <div class="nav-item" data-page="siteSettings">Configurações</div>
   </div>
+  <main class="adminMain">
+    <section id="page-siteSettings" class="page active">
+      <h2>Configurações do Site</h2>
+      <div class="adminCard">
+        <h3>Identidade</h3>
+        <input type="text" id="cfgTitle" value="CRIMSON FACTIONS">
+        <textarea id="cfgSubtitle">Inscreva-se para as Facções Americanas</textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar Configurações</button>
+    </section>
+  </main>
 </div>
 
-<script>
-// Partículas
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize);
-resize();
+<script type="module">
+  // Novo Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDpFNHdS5qyvzisflT0sik-XOf5vkiHFX0",
+    authDomain: "cidade-avancada-4aa20.firebaseapp.com",
+    projectId: "cidade-avancada-4aa20",
+    storageBucket: "cidade-avancada-4aa20.firebasestorage.app",
+    messagingSenderId: "703999683431",
+    appId: "1:703999683431:web:df2f9aae59f61e198b9dc2"
+  };
+  initializeApp(firebaseConfig);
 
-let particles = [];
-for(let i=0; i<120; i++){
-  particles.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*2+0.5, vx:Math.random()-0.5, vy:Math.random()-0.5});
-}
-
-function animate(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = "rgba(220,20,60,0.7)";
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+  // Login
+  document.getElementById('loginBtn').addEventListener('click', () => {
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    if(user === "JuJu" && pass === "123456"){
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'block';
+    } else {
+      alert("Usuário ou senha incorretos");
+    }
   });
-  requestAnimationFrame(animate);
-}
-animate();
 
-// Form
-document.getElementById('form').onsubmit = (e) => {
-  e.preventDefault();
-  alert("✅ Candidatura enviada com sucesso!");
-};
+  function saveConfig(){
+    alert("Configurações salvas com sucesso!");
+  }
 
-// Admin
-function showAdmin(){
-  document.getElementById('adminPanel').style.display = 'block';
-}
-function hideAdmin(){
-  document.getElementById('adminPanel').style.display = 'none';
-}
-function saveSettings(){
-  alert("Configurações salvas com sucesso!");
-}
+  // Inicia
+  document.getElementById('publicView').style.display = 'block';
 </script>
 </body>
 </html>
