@@ -115,6 +115,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .btn-main{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:#fff;box-shadow:0 8px 24px -8px var(--accent-glow)}
 .btn-main:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .btn-main:active{transform:translateY(0)}
+.btn-main:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--ink-dim)}
 .btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
 .btn-sm{padding:8px 12px;font-size:12px;border-radius:8px}
@@ -124,6 +125,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
 .error-box{background:rgba(216,30,61,.08);border:1px solid var(--accent-deep);color:#ff8a9a;padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;font-family:var(--mono)}
+.info-box{background:rgba(63,191,111,.08);border:1px solid rgba(63,191,111,.3);color:#8fe0ac;padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;font-family:var(--mono)}
 
 /* ---------- confirmation dossier ---------- */
 .dossier-confirm{text-align:center;padding:20px 0}
@@ -144,6 +146,12 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 .modal .sub{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-bottom:20px}
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ink-faint);font-size:20px;cursor:pointer;line-height:1}
 .modal-close:hover{color:var(--accent)}
+
+/* ---------- loading ---------- */
+.loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:200;flex-direction:column;gap:14px}
+.loading-overlay .spin{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.loading-overlay .txt{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:1.5px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ================= ADMIN ================= */
 #adminView{display:none;min-height:100vh;position:relative;z-index:2}
@@ -204,8 +212,14 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 </head>
 <body>
 
+<!-- ============ LOADING ============ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spin"></div>
+  <div class="txt">CONECTANDO AO SERVIDOR...</div>
+</div>
+
 <!-- ============ PUBLIC VIEW ============ -->
-<div id="publicView">
+<div id="publicView" class="hidden">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="brand"><span class="dot"></span><div><div>CRIMSON FACTIONS</div><small>CRIMSON CITY RP · RECRUTAMENTO</small></div></div>
@@ -267,8 +281,8 @@ footer.site-footer .adm button:hover{color:var(--accent)}
           <textarea id="fMotivacao" placeholder="Por que você quer fazer parte desta facção?" required></textarea>
           <div class="charcount"><span id="motCount">0</span> caracteres</div>
         </div>
-        <button type="submit" class="btn btn-main">ENVIAR CANDIDATURA</button>
-        <div class="hint" style="text-align:center;margin-top:12px">Campos marcados com <span class="req">*</span> são obrigatórios · seus dados ficam salvos neste navegador</div>
+        <button type="submit" class="btn btn-main" id="submitBtn">ENVIAR CANDIDATURA</button>
+        <div class="hint" style="text-align:center;margin-top:12px">Campos marcados com <span class="req">*</span> são obrigatórios · seus dados ficam salvos no servidor</div>
       </form>
 
       <div class="dossier-confirm hidden" id="confirmScreen">
@@ -354,7 +368,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     <div class="tab-pane hidden" id="tab-factions">
       <div class="panel">
         <h3>Gerenciar facções</h3>
-        <div class="hint" style="margin-bottom:14px">Edite nome, tag, cor, vagas e status diretamente. Alterações salvam automaticamente.</div>
+        <div class="hint" style="margin-bottom:14px">Edite nome, tag, cor, vagas e status diretamente. Alterações salvam automaticamente no servidor.</div>
         <div id="factionManageList"></div>
         <div class="add-faction-row">
           <input type="color" id="newFacColor" value="#d81e3d">
@@ -392,32 +406,50 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   </div>
 </div>
 
+<!-- ============ FIREBASE (compat SDK via CDN) ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
 <script>
 (function(){
   "use strict";
 
-  /* ---------------- storage layer ---------------- */
-  const DB_KEY = 'cf_db_v1';
-  const defaultData = {
+  /* ---------------- firebase init ---------------- */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDpFNHdS5qyvzisflT0sik-XOf5vkiHFX0",
+    authDomain: "cidade-avancada-4aa20.firebaseapp.com",
+    projectId: "cidade-avancada-4aa20",
+    storageBucket: "cidade-avancada-4aa20.firebasestorage.app",
+    messagingSenderId: "703999683431",
+    appId: "1:703999683431:web:df2f9aae59f61e198b9dc2",
+    measurementId: "G-25VS45NJPT"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const APPLICATIONS_COL = 'cf_applications';
+  const FACTIONS_COL = 'cf_factions';
+  const SETTINGS_DOC = db.collection('cf_settings').doc('main');
+
+  const defaultFactions = [
+    {id:'f1', name:'The Families', tag:'STREET GANG · SUL', color:'#3fbf6f', desc:'Uma das facções mais tradicionais da cidade, controlando o setor sul.', vagas:8, aberta:true},
+    {id:'f2', name:'Ballas', tag:'STREET GANG · LESTE', color:'#8b3fd9', desc:'Rivais históricos dos Families, dominam a zona leste da cidade.', vagas:6, aberta:true},
+    {id:'f3', name:'Polícia de Crimson City', tag:'FACÇÃO OFICIAL', color:'#3f7fd9', desc:'Força policial responsável pela lei e ordem na cidade.', vagas:10, aberta:true}
+  ];
+
+  /* ---------------- local state (mirrors Firestore) ---------------- */
+  let state = {
     adminPass: 'crimson2026',
-    factions: [
-      {id:'f1', name:'The Families', tag:'STREET GANG · SUL', color:'#3fbf6f', desc:'Uma das facções mais tradicionais da cidade, controlando o setor sul.', vagas:8, aberta:true},
-      {id:'f2', name:'Ballas', tag:'STREET GANG · LESTE', color:'#8b3fd9', desc:'Rivais históricos dos Families, dominam a zona leste da cidade.', vagas:6, aberta:true},
-      {id:'f3', name:'Polícia de Crimson City', tag:'FACÇÃO OFICIAL', color:'#3f7fd9', desc:'Força policial responsável pela lei e ordem na cidade.', vagas:10, aberta:true}
-    ],
+    factions: [],
     applications: []
   };
 
-  function loadDB(){
-    try{
-      const raw = localStorage.getItem(DB_KEY);
-      if(!raw) { saveDB(defaultData); return structuredClone(defaultData); }
-      return JSON.parse(raw);
-    }catch(e){ saveDB(defaultData); return structuredClone(defaultData); }
-  }
-  function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-
-  let db = loadDB();
+  let unsubApps = null;
+  let unsubFacs = null;
+  let unsubSettings = null;
+  let firstFactionsLoad = true;
+  let firstSettingsLoad = true;
 
   function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
   function protoCode(){
@@ -428,18 +460,69 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function fmtDate(iso){
+    if(!iso) return '—';
     const d = new Date(iso);
     return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }
+
+  /* ---------------- realtime listeners ---------------- */
+  function startListeners(){
+    unsubSettings = SETTINGS_DOC.onSnapshot(async (snap)=>{
+      if(snap.exists){
+        state.adminPass = snap.data().adminPass || 'crimson2026';
+      } else if(firstSettingsLoad){
+        await SETTINGS_DOC.set({adminPass:'crimson2026'});
+      }
+      firstSettingsLoad = false;
+    }, (err)=>{ console.error('settings listener error', err); });
+
+    unsubFacs = db.collection(FACTIONS_COL).onSnapshot(async (snap)=>{
+      if(snap.empty && firstFactionsLoad){
+        firstFactionsLoad = false;
+        // seed default factions once
+        const batch = db.batch();
+        defaultFactions.forEach(f=>{
+          const ref = db.collection(FACTIONS_COL).doc(f.id);
+          batch.set(ref, f);
+        });
+        await batch.commit();
+        return; // snapshot will fire again with seeded data
+      }
+      firstFactionsLoad = false;
+      state.factions = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderFactionGallery();
+      renderFactionSelect();
+      renderPublicStats();
+      renderDash();
+      renderAppsList();
+      renderFactionManage();
+      showApp();
+    }, (err)=>{ console.error('factions listener error', err); showApp(true); });
+
+    unsubApps = db.collection(APPLICATIONS_COL).orderBy('data','desc').onSnapshot((snap)=>{
+      state.applications = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      renderPublicStats();
+      renderDash();
+      renderAppsList();
+    }, (err)=>{ console.error('applications listener error', err); });
+  }
+
+  function showApp(errored){
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    document.getElementById('publicView').classList.remove('hidden');
+    if(errored){
+      document.getElementById('formErrors').innerHTML = '<div class="error-box">Não foi possível conectar ao servidor. Verifique sua conexão e recarregue a página.</div>';
+    }
   }
 
   /* ---------------- public: faction gallery ---------------- */
   function renderFactionGallery(){
     const el = document.getElementById('factionGallery');
-    if(db.factions.length === 0){
+    if(state.factions.length === 0){
       el.innerHTML = '<div class="empty-state"><div class="big">🏴</div>Nenhuma facção cadastrada ainda.</div>';
       return;
     }
-    el.innerHTML = db.factions.map(f => `
+    el.innerHTML = state.factions.map(f => `
       <div class="faction-tile ${f.aberta ? '' : 'closed'}" style="--fc:${f.color}">
         <div class="fname">${escapeHtml(f.name)}</div>
         <div class="ftag">${escapeHtml(f.tag||'')}</div>
@@ -454,22 +537,26 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
   function renderFactionSelect(){
     const sel = document.getElementById('fFaccao');
-    const open = db.factions.filter(f => f.aberta);
+    const prevVal = sel.value;
+    const open = state.factions.filter(f => f.aberta);
     sel.innerHTML = open.length
       ? open.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('')
       : '<option value="">Nenhuma facção recrutando no momento</option>';
+    if(open.some(f=>f.id===prevVal)) sel.value = prevVal;
 
     const filt = document.getElementById('filterFaction');
     if(filt){
-      filt.innerHTML = '<option value="">Todas as facções</option>' + db.factions.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+      const prevFilt = filt.value;
+      filt.innerHTML = '<option value="">Todas as facções</option>' + state.factions.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+      if(state.factions.some(f=>f.id===prevFilt)) filt.value = prevFilt;
     }
   }
 
   function renderPublicStats(){
-    document.getElementById('statOpenFactions').textContent = db.factions.filter(f=>f.aberta).length;
-    document.getElementById('statTotalApps').textContent = db.applications.length;
-    document.getElementById('statApproved').textContent = db.applications.filter(a=>a.status==='aprovado').length;
-    document.getElementById('totalProcessedTop').textContent = db.applications.filter(a=>a.status!=='pendente').length;
+    document.getElementById('statOpenFactions').textContent = state.factions.filter(f=>f.aberta).length;
+    document.getElementById('statTotalApps').textContent = state.applications.length;
+    document.getElementById('statApproved').textContent = state.applications.filter(a=>a.status==='aprovado').length;
+    document.getElementById('totalProcessedTop').textContent = state.applications.filter(a=>a.status!=='pendente').length;
   }
 
   function newDraftProto(){
@@ -486,7 +573,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   expEl.addEventListener('input', ()=> document.getElementById('expCount').textContent = expEl.value.length);
   motEl.addEventListener('input', ()=> document.getElementById('motCount').textContent = motEl.value.length);
 
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', async function(e){
     e.preventDefault();
     const errs = [];
     const nome = document.getElementById('fNome').value.trim();
@@ -510,9 +597,12 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     }
     errBox.innerHTML = '';
 
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'ENVIANDO...';
+
     const proto = sessionStorage.getItem('cf_draft_proto') || protoCode();
     const app = {
-      id: uid('app'),
       protocolo: proto,
       nome, discord,
       idade: idade || null,
@@ -522,15 +612,20 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       status: 'pendente',
       data: new Date().toISOString()
     };
-    db.applications.unshift(app);
-    saveDB(db);
-    sessionStorage.removeItem('cf_draft_proto');
 
-    document.getElementById('finalProto').textContent = proto;
-    form.classList.add('hidden');
-    document.getElementById('confirmScreen').classList.remove('hidden');
-    renderPublicStats();
-    renderAdminAll();
+    try{
+      await db.collection(APPLICATIONS_COL).add(app);
+      sessionStorage.removeItem('cf_draft_proto');
+      document.getElementById('finalProto').textContent = proto;
+      form.classList.add('hidden');
+      document.getElementById('confirmScreen').classList.remove('hidden');
+    }catch(err){
+      console.error(err);
+      errBox.innerHTML = '<div class="error-box">Erro ao enviar candidatura. Tente novamente.</div>';
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'ENVIAR CANDIDATURA';
+    }
   });
 
   document.getElementById('newAppBtn').addEventListener('click', function(){
@@ -555,7 +650,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
   function tryLogin(){
     const val = document.getElementById('adminPass').value;
-    if(val === db.adminPass){
+    if(val === state.adminPass){
       loginModal.classList.add('hidden');
       enterAdmin();
     } else {
@@ -568,7 +663,9 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   function enterAdmin(){
     document.getElementById('publicView').classList.add('inactive');
     document.getElementById('adminView').classList.add('active');
-    renderAdminAll();
+    renderDash();
+    renderAppsList();
+    renderFactionManage();
   }
   document.getElementById('exitAdminBtn').addEventListener('click', function(){
     document.getElementById('adminView').classList.remove('active');
@@ -587,16 +684,16 @@ footer.site-footer .adm button:hover{color:var(--accent)}
 
   /* ---------------- admin: dashboard ---------------- */
   function renderDash(){
-    const apps = db.applications;
+    const apps = state.applications;
     document.getElementById('dashTotal').textContent = apps.length;
     document.getElementById('dashPend').textContent = apps.filter(a=>a.status==='pendente').length;
     document.getElementById('dashOk').textContent = apps.filter(a=>a.status==='aprovado').length;
     document.getElementById('dashNo').textContent = apps.filter(a=>a.status==='rejeitado').length;
 
     const breakdown = document.getElementById('factionBreakdown');
-    if(db.factions.length===0){ breakdown.innerHTML = '<div class="empty-state">Nenhuma facção cadastrada.</div>'; }
+    if(state.factions.length===0){ breakdown.innerHTML = '<div class="empty-state">Nenhuma facção cadastrada.</div>'; }
     else{
-      breakdown.innerHTML = db.factions.map(f=>{
+      breakdown.innerHTML = state.factions.map(f=>{
         const count = apps.filter(a=>a.faccaoId===f.id).length;
         const pct = apps.length ? Math.round(count/apps.length*100) : 0;
         return `<div style="margin-bottom:12px">
@@ -613,7 +710,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     const recent = document.getElementById('recentApps');
     const last5 = apps.slice(0,5);
     recent.innerHTML = last5.length ? last5.map(a=>{
-      const fac = db.factions.find(f=>f.id===a.faccaoId);
+      const fac = state.factions.find(f=>f.id===a.faccaoId);
       return `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-soft);font-size:13px">
         <span>${escapeHtml(a.nome)} <span style="color:var(--ink-faint)">→ ${escapeHtml(fac?fac.name:'—')}</span></span>
         <span class="status-pill status-${a.status}">${a.status.toUpperCase()}</span>
@@ -626,12 +723,14 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   let openDossierId = null;
 
   function renderAppsList(){
-    const search = (document.getElementById('searchApps').value||'').toLowerCase();
-    const facFilter = document.getElementById('filterFaction').value;
-    let apps = db.applications.filter(a=>{
+    const searchInput = document.getElementById('searchApps');
+    const filterSel = document.getElementById('filterFaction');
+    const search = (searchInput.value||'').toLowerCase();
+    const facFilter = filterSel.value;
+    let apps = state.applications.filter(a=>{
       if(currentStatusFilter && a.status !== currentStatusFilter) return false;
       if(facFilter && a.faccaoId !== facFilter) return false;
-      if(search && !(a.nome.toLowerCase().includes(search) || a.discord.toLowerCase().includes(search))) return false;
+      if(search && !((a.nome||'').toLowerCase().includes(search) || (a.discord||'').toLowerCase().includes(search))) return false;
       return true;
     });
 
@@ -642,7 +741,7 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     }
 
     list.innerHTML = apps.map(a=>{
-      const fac = db.factions.find(f=>f.id===a.faccaoId);
+      const fac = state.factions.find(f=>f.id===a.faccaoId);
       const isOpen = openDossierId === a.id;
       return `<div class="dossier ${isOpen?'open':''}" data-id="${a.id}">
         <div class="dossier-head" data-toggle="${a.id}">
@@ -680,20 +779,19 @@ footer.site-footer .adm button:hover{color:var(--accent)}
       });
     });
     list.querySelectorAll('[data-action]').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
+      btn.addEventListener('click', async (e)=>{
         e.stopPropagation();
         const id = btn.dataset.id;
         const action = btn.dataset.action;
         if(action === 'delete'){
           if(confirm('Excluir esta candidatura permanentemente?')){
-            db.applications = db.applications.filter(a=>a.id!==id);
-            saveDB(db);
-            renderAdminAll();
+            try{ await db.collection(APPLICATIONS_COL).doc(id).delete(); }
+            catch(err){ console.error(err); alert('Erro ao excluir.'); }
           }
           return;
         }
-        const app = db.applications.find(a=>a.id===id);
-        if(app){ app.status = action; saveDB(db); renderAdminAll(); }
+        try{ await db.collection(APPLICATIONS_COL).doc(id).update({status: action}); }
+        catch(err){ console.error(err); alert('Erro ao atualizar status.'); }
       });
     });
   }
@@ -710,13 +808,15 @@ footer.site-footer .adm button:hover{color:var(--accent)}
   });
 
   /* ---------------- admin: factions management ---------------- */
+  let facSaveTimers = {};
+
   function renderFactionManage(){
     const el = document.getElementById('factionManageList');
-    if(!db.factions.length){
+    if(!state.factions.length){
       el.innerHTML = '<div class="empty-state">Nenhuma facção cadastrada. Adicione uma abaixo.</div>';
       return;
     }
-    el.innerHTML = db.factions.map(f=>`
+    el.innerHTML = state.factions.map(f=>`
       <div class="faction-row" data-id="${f.id}">
         <input type="color" value="${f.color}" data-field="color" data-id="${f.id}">
         <input type="text" value="${escapeHtml(f.name)}" data-field="name" data-id="${f.id}" placeholder="Nome">
@@ -731,56 +831,80 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     `).join('');
 
     el.querySelectorAll('[data-field]').forEach(inp=>{
-      inp.addEventListener('input', function(){
-        const f = db.factions.find(x=>x.id===this.dataset.id);
-        if(!f) return;
+      const handler = function(){
+        const id = this.dataset.id;
         const field = this.dataset.field;
-        f[field] = field==='aberta' ? this.checked : (field==='vagas' ? Number(this.value||0) : this.value);
-        saveDB(db);
-        renderFactionGallery(); renderFactionSelect(); renderPublicStats(); renderDash(); renderAppsList();
-      });
+        const value = field==='aberta' ? this.checked : (field==='vagas' ? Number(this.value||0) : this.value);
+
+        // checkbox saves immediately; text/number/color debounced
+        if(field === 'aberta'){
+          db.collection(FACTIONS_COL).doc(id).update({[field]: value}).catch(err=>console.error(err));
+          return;
+        }
+        clearTimeout(facSaveTimers[id+field]);
+        facSaveTimers[id+field] = setTimeout(()=>{
+          db.collection(FACTIONS_COL).doc(id).update({[field]: value}).catch(err=>console.error(err));
+        }, 500);
+      };
+      inp.addEventListener('input', handler);
+      if(inp.type === 'color') inp.addEventListener('change', handler);
     });
     el.querySelectorAll('[data-remove]').forEach(btn=>{
-      btn.addEventListener('click', function(){
+      btn.addEventListener('click', async function(){
         if(confirm('Remover esta facção? Candidaturas associadas permanecerão, mas sem facção vinculada.')){
-          db.factions = db.factions.filter(f=>f.id!==this.dataset.remove);
-          saveDB(db);
-          renderAdminAll();
+          try{ await db.collection(FACTIONS_COL).doc(this.dataset.remove).delete(); }
+          catch(err){ console.error(err); alert('Erro ao remover facção.'); }
         }
       });
     });
   }
 
-  document.getElementById('addFactionBtn').addEventListener('click', function(){
+  document.getElementById('addFactionBtn').addEventListener('click', async function(){
     const name = document.getElementById('newFacName').value.trim();
     const tag = document.getElementById('newFacTag').value.trim();
     const color = document.getElementById('newFacColor').value;
     const vagas = Number(document.getElementById('newFacVagas').value || 0);
     if(!name){ alert('Informe o nome da facção.'); return; }
-    db.factions.push({id:uid('f'), name, tag, color, desc:'', vagas, aberta:true});
-    saveDB(db);
-    document.getElementById('newFacName').value='';
-    document.getElementById('newFacTag').value='';
-    document.getElementById('newFacVagas').value='';
-    renderAdminAll();
+    const btn = this;
+    btn.disabled = true;
+    try{
+      await db.collection(FACTIONS_COL).add({name, tag, color, desc:'', vagas, aberta:true});
+      document.getElementById('newFacName').value='';
+      document.getElementById('newFacTag').value='';
+      document.getElementById('newFacVagas').value='';
+    }catch(err){
+      console.error(err);
+      alert('Erro ao adicionar facção.');
+    }finally{
+      btn.disabled = false;
+    }
   });
 
   /* ---------------- admin: settings ---------------- */
-  document.getElementById('saveNewPassBtn').addEventListener('click', function(){
+  document.getElementById('saveNewPassBtn').addEventListener('click', async function(){
     const val = document.getElementById('newAdminPass').value;
     const msg = document.getElementById('passSavedMsg');
     if(!val || val.length < 4){
       msg.innerHTML = '<div class="error-box">A senha deve ter ao menos 4 caracteres.</div>';
       return;
     }
-    db.adminPass = val;
-    saveDB(db);
-    document.getElementById('newAdminPass').value='';
-    msg.innerHTML = '<div class="hint" style="color:var(--ok)">Senha atualizada com sucesso.</div>';
+    try{
+      await SETTINGS_DOC.set({adminPass: val}, {merge:true});
+      document.getElementById('newAdminPass').value='';
+      msg.innerHTML = '<div class="hint" style="color:var(--ok)">Senha atualizada com sucesso.</div>';
+    }catch(err){
+      console.error(err);
+      msg.innerHTML = '<div class="error-box">Erro ao salvar senha.</div>';
+    }
   });
 
   document.getElementById('exportBtn').addEventListener('click', function(){
-    const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+    const backup = {
+      adminPass: state.adminPass,
+      factions: state.factions,
+      applications: state.applications
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'crimson-factions-backup.json';
@@ -792,44 +916,66 @@ footer.site-footer .adm button:hover{color:var(--accent)}
     const file = e.target.files[0];
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = function(ev){
+    reader.onload = async function(ev){
       try{
         const data = JSON.parse(ev.target.result);
         if(!data.factions || !data.applications){ throw new Error('formato inválido'); }
-        db = data;
-        saveDB(db);
-        renderAdminAll(); renderFactionGallery(); renderFactionSelect(); renderPublicStats();
+        if(!confirm(`Importar ${data.factions.length} facções e ${data.applications.length} candidaturas? Isso ADICIONA aos dados existentes (não apaga).`)) return;
+
+        const batch = db.batch();
+        data.factions.forEach(f=>{
+          const {id, ...rest} = f;
+          const ref = id ? db.collection(FACTIONS_COL).doc(id) : db.collection(FACTIONS_COL).doc();
+          batch.set(ref, rest, {merge:true});
+        });
+        data.applications.forEach(a=>{
+          const {id, ...rest} = a;
+          const ref = id ? db.collection(APPLICATIONS_COL).doc(id) : db.collection(APPLICATIONS_COL).doc();
+          batch.set(ref, rest, {merge:true});
+        });
+        if(data.adminPass) await SETTINGS_DOC.set({adminPass: data.adminPass}, {merge:true});
+        await batch.commit();
         alert('Backup importado com sucesso.');
       }catch(err){
-        alert('Arquivo inválido. Verifique se é um backup exportado por este site.');
+        console.error(err);
+        alert('Arquivo inválido ou erro ao importar. Verifique se é um backup exportado por este site.');
       }
       e.target.value = '';
     };
     reader.readAsText(file);
   });
 
-  document.getElementById('resetBtn').addEventListener('click', function(){
-    if(confirm('Isso apagará TODAS as candidaturas e facções permanentemente. Continuar?')){
-      db = structuredClone(defaultData);
-      saveDB(db);
-      renderAdminAll(); renderFactionGallery(); renderFactionSelect(); renderPublicStats();
+  document.getElementById('resetBtn').addEventListener('click', async function(){
+    if(!confirm('Isso apagará TODAS as candidaturas e facções permanentemente. Continuar?')) return;
+    const btn = this;
+    btn.disabled = true;
+    try{
+      const batch = db.batch();
+      const appsSnap = await db.collection(APPLICATIONS_COL).get();
+      appsSnap.forEach(doc => batch.delete(doc.ref));
+      const facsSnap = await db.collection(FACTIONS_COL).get();
+      facsSnap.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+
+      const seedBatch = db.batch();
+      defaultFactions.forEach(f=>{
+        const {id, ...rest} = f;
+        const ref = db.collection(FACTIONS_COL).doc(id);
+        seedBatch.set(ref, rest);
+      });
+      await seedBatch.commit();
+      await SETTINGS_DOC.set({adminPass:'crimson2026'});
+    }catch(err){
+      console.error(err);
+      alert('Erro ao limpar dados.');
+    }finally{
+      btn.disabled = false;
     }
   });
 
-  /* ---------------- master render ---------------- */
-  function renderAdminAll(){
-    renderDash();
-    renderFactionSelect();
-    renderAppsList();
-    renderFactionManage();
-  }
-
   /* ---------------- init ---------------- */
-  renderFactionGallery();
-  renderFactionSelect();
-  renderPublicStats();
   newDraftProto();
-  renderAdminAll();
+  startListeners();
 
 })();
 </script>
